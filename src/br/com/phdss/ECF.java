@@ -1,4 +1,4 @@
-package br.com.openecf;
+package br.com.phdss;
 
 import java.io.DataInputStream;
 import java.io.IOException;

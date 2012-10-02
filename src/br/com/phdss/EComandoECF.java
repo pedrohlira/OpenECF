@@ -1,4 +1,4 @@
-package br.com.openecf;
+package br.com.phdss;
 
 /**
  * Enumerador que define os comando do ECF no ACBrMonitor.
