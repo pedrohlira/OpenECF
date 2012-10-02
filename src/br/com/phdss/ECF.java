@@ -251,7 +251,7 @@ public final class ECF {
                         throw new Exception(resp[1]);
                     }
                 } else {
-                    return 0;
+                    return 0.00;
                 }
             } catch (Exception ex) {
                 throw new Exception(ex.getMessage());
