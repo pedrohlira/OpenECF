@@ -80,8 +80,7 @@ public final class ECF {
      * Metodo que envia um comando ao ACBr que repassa para a ECF.
      *
      * @param comando um EComandoECF que representa um comando aceito.
-     * @param parametros um sequencia de parametros, opcionais usado somente em
-     * alguns comandos.
+     * @param parametros um sequencia de parametros, opcionais usado somente em alguns comandos.
      */
     public static String[] enviar(EComandoECF comando, String... parametros) {
         return enviar(comando.toString(), parametros);
@@ -91,8 +90,7 @@ public final class ECF {
      * Metodo que envia um comando ao ECF que repassa para a ECF.
      *
      * @param comando uma String que representa um comando aceito.
-     * @param parametros um sequencia de parametros, opcionais usado somente em
-     * alguns comandos.
+     * @param parametros um sequencia de parametros, opcionais usado somente em alguns comandos.
      */
     private static String[] enviar(String comando, String... parametros) {
         String[] resp = new String[]{"", ""};
@@ -196,12 +194,10 @@ public final class ECF {
     }
 
     /**
-     * Metodo que faz a validacao se o ECF conectado e o autorizado pelo
-     * sistema.
+     * Metodo que faz a validacao se o ECF conectado e o autorizado pelo sistema.
      *
      * @param serie o numero de serie do ECF registrado no arquivo do PAF.
-     * @throws OpenPdvException dispara uma excecao caso nao seja o ECF
-     * esperado.
+     * @throws OpenPdvException dispara uma excecao caso nao seja o ECF esperado.
      */
     public static void validarSerial(String serie) throws Exception {
         String[] resp = enviar(EComandoECF.ECF_NumSerie);
@@ -216,43 +212,18 @@ public final class ECF {
     }
 
     /**
-     * Metodo que faz a validacao se o ultimo numero do GT e o mesmo do ECF,
-     * caso nao seja fara as tentativas de arrumar.
+     * Metodo que faz a validacao se o ultimo numero do GT e o mesmo do ECF.
      *
      * @param gt o valor do grande total registrado no arquivo do PAF.
-     * @param cro o valor do CRO registrado no arquivo do PAF.
-     * @return retorna o valor do GT novo caso o cro seja adicionado, ou zero se
-     * tudo ok.
+     * @return retorna o valor do GT novo caso seja diferente.
      * @throws OpenPdvException dispara uma excecao caso nao consiga executar.
      */
-    public static double validarGT(double gt, int cro) throws Exception {
+    public static double validarGT(double gt) throws Exception {
         String[] resp = enviar(EComandoECF.ECF_GrandeTotal);
         if (ECF.OK.equals(resp[0])) {
             try {
                 double gt1 = Double.valueOf(resp[1].replace(",", "."));
-
-                // se diferente faz novas analises
-                if (gt1 != gt) {
-                    resp = enviar(EComandoECF.ECF_NumCRO);
-                    if (ECF.OK.equals(resp[0])) {
-                        try {
-                            int cro1 = Integer.valueOf(resp[1]);
-
-                            // se houve incremento do cro, somente recompoen o GT no arquivo
-                            if (cro1 > cro) {
-                                return gt1;
-                            } else {
-                                throw new Exception("O ECF conectado tem o Grande Total = " + gt1 + "\nO arquivo criptografado tem o Grande Total = " + gt);
-                            }
-                        } catch (Exception ex) {
-                            throw new Exception(ex.getMessage());
-                        }
-                    } else {
-                        throw new Exception(resp[1]);
-                    }
-                } else {
-                    return 0.00;
-                }
+                return gt1 != gt ? gt1 : 0.00;
             } catch (Exception ex) {
                 throw new Exception(ex.getMessage());
             }
