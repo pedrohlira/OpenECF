@@ -47,7 +47,7 @@ public enum EComandoECF {
      */
     ECF_Porta,
     /**
-     * Retorna data e hora do ECF
+     * Retorna data e hora do ECF.
      */
     ECF_DataHora,
     /**
