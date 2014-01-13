@@ -1,2 +1,5 @@
 /build
 /dist
+/src/br/com/phdss/naofiscal/NF.java
+/src/br/com/phdss/naofiscal/DarumaNF.java
+/src/br/com/phdss/naofiscal/BematechNF.java

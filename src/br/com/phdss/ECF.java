@@ -1,49 +1,19 @@
 package br.com.phdss;
 
-import java.io.DataInputStream;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.net.SocketAddress;
-import org.apache.log4j.Logger;
+import br.com.phdss.fiscal.ACBR;
+import br.com.phdss.fiscal.Bematech;
+import br.com.phdss.fiscal.Daruma;
+import br.com.phdss.naofiscal.BematechNF;
+import br.com.phdss.naofiscal.DarumaNF;
 
 /**
- * Classe que representa o ECF no sistema e todas suas funcionalidiades.
+ * Classe que abstrai a criação do objet que acessa o ECF para impressão.
  *
  * @author Pedro H. Lira
  */
-public final class ECF {
+public class ECF {
 
-    /**
-     * Numero de colunas.
-     */
-    public static int COL;
-    /**
-     * Linha Simples [---].
-     */
-    public static String LS;
-    /**
-     * Linha Dupla [===].
-     */
-    public static String LD;
-    /**
-     * Separador de linhas
-     */
-    public static final String SL = "|";
-    /**
-     * Expressao OK.
-     */
-    public static final String OK = "OK";
-    /**
-     * Expressao ERRO.
-     */
-    public static final String ERRO = "ERRO";
-    private static Logger log;
-    private static Socket acbr;
-    private static PrintWriter saida = null;
-    private static DataInputStream entrada = null;
+    private static IECF ecf = null;
 
     /**
      * Construtor padrao.
@@ -52,183 +22,45 @@ public final class ECF {
     }
 
     /**
-     * Metodo que realiza a conexao com o ECF.
+     * Metodo que seta o objeto de ECF de acordo com o configurado.
      *
-     * @param servidor a URL ou IP do servidor.
-     * @param porta o numero da porta de comunicacao. milisegundos.
-     * @throws Exception dispara um excecao caso nao cosiga.
+     * @param tipo o texto que diz qual o tipo de ECF desejado.
      */
-    public static void conectar(String servidor, int porta) throws Exception {
-        log = Logger.getLogger(ECF.class);
+    public static void setInstancia(String tipo) {
+        ECF.setInstancia(EECF.valueOf(tipo));
+    }
 
-        try {
-            InetAddress ip = InetAddress.getByName(servidor);
-            SocketAddress url = new InetSocketAddress(ip, porta);
-            acbr = new Socket();
-            acbr.connect(url, 10000);
-            saida = new PrintWriter(acbr.getOutputStream());
-            entrada = new DataInputStream(acbr.getInputStream());
-
-            lerDados();
-        } catch (IOException ex) {
-            log.error("Nao foi possivel se conectar ao ACBrMonitor", ex);
-            throw new Exception("Verifique se as configuraõçes estão corretas e se está ativo no sistema.");
+    /**
+     * Metodo que seta o objeto de ECF de acordo com o configurado.
+     *
+     * @param tipo o enum que diz qual o tipo de ECF desejado.
+     */
+    public static void setInstancia(EECF tipo) {
+        switch (tipo) {
+            case BEMATECH:
+                ecf = new Bematech();
+                break;
+            case BEMATECH_NF:
+                ecf = new BematechNF();
+                break;
+            case DARUMA:
+                ecf = new Daruma();
+                break;
+            case DARUMA_NF:
+                ecf = new DarumaNF();
+                break;
+            default:
+                ecf = new ACBR();
+                break;
         }
     }
 
     /**
-     * Metodo que envia um comando ao ACBr que repassa para a ECF.
+     * Metodo que constroi um objeto do tipo IECF e devolve para o solicitante.
      *
-     * @param comando um EComandoECF que representa um comando aceito.
-     * @param parametros um sequencia de parametros, opcionais usado somente em alguns comandos.
+     * @return o objeto instaciado solicitado.
      */
-    public static String[] enviar(EComandoECF comando, String... parametros) {
-        return enviar(comando.toString(), parametros);
-    }
-
-    /**
-     * Metodo que envia um comando ao ECF que repassa para a ECF.
-     *
-     * @param comando uma String que representa um comando aceito.
-     * @param parametros um sequencia de parametros, opcionais usado somente em alguns comandos.
-     */
-    private static String[] enviar(String comando, String... parametros) {
-        String[] resp = new String[]{"", ""};
-        StringBuilder acao = new StringBuilder(comando);
-
-        if (parametros != null && parametros.length > 0) {
-            acao.append("(");
-            for (String param : parametros) {
-                acao.append(param).append(",");
-            }
-            acao.deleteCharAt(acao.length() - 1).append(")");
-        }
-
-        try {
-            saida.print(acao.toString() + "\r\n.\r\n");
-            saida.flush();
-
-            String dados = lerDados();
-            if ("".equals(dados)) {
-                resp[0] = OK;
-            } else if (dados.contains(":")) {
-                String[] ret = dados.split(":", 2);
-                resp[0] = ret[0].trim();
-                resp[1] = ret[1].trim();
-            } else {
-                resp[0] = OK;
-                resp[1] = dados.trim();
-            }
-        } catch (Exception ex) {
-            log.error("Nao foi possivel enviar ou receber comando ao ECF" + acao.toString(), ex);
-            resp[0] = ERRO;
-            resp[1] = "Nao foi possivel enviar ou receber comando ao ECF";
-        }
-        return resp;
-    }
-
-    /**
-     * Metodo que faz a leitura do retorno do ECF.
-     *
-     * @return uma String da resposta.
-     */
-    private static String lerDados() {
-        StringBuilder sb = new StringBuilder();
-        try {
-            byte b;
-            while ((b = (byte) entrada.read()) != 3) {
-                sb.append(new String(new byte[]{b}));
-            }
-            return sb.toString();
-        } catch (IOException ex) {
-            return ERRO + ":" + ex.getMessage();
-        }
-    }
-
-    /**
-     * Metodo que faz a validacao se o sistema consegue ativar a ECF.
-     *
-     * @throws Exception dispara uma excecao caso nao consiga ativar.
-     */
-    public static void ativar() throws Exception {
-        String[] resp = enviar(EComandoECF.ECF_Ativar);
-        if (ECF.ERRO.equals(resp[0])) {
-            throw new Exception(resp[1]);
-        }
-        // pega as colunas e forma as linhas
-        resp = enviar(EComandoECF.ECF_Colunas);
-        ECF.COL = ECF.OK.equals(resp[0]) ? Integer.valueOf(resp[1]) : 48;
-        StringBuilder sb1 = new StringBuilder();
-        StringBuilder sb2 = new StringBuilder();
-
-        for (int i = 0; i < ECF.COL; i++) {
-            sb1.append("-");
-            sb2.append("=");
-        }
-
-        ECF.LS = sb1.toString();
-        ECF.LD = sb2.toString();
-    }
-
-    /**
-     * Metodo que desativa o acesso ao ECF
-     */
-    public static void desativar() {
-        ECF.enviar(EComandoECF.ECF_Desativar);
-        ECF.enviar(EComandoECF.ECF_CorrigeEstadoErro);
-    }
-
-    /**
-     * Metodo que retorna o estado do ECF.
-     *
-     * @return o tipo do estado do ECF.
-     * @throws OpenPdvException dispara uma excecao caso nao consiga executar.
-     */
-    public static EEstadoECF validarEstado() throws Exception {
-        String[] resp = enviar(EComandoECF.ECF_Estado);
-        if (ECF.OK.equals(resp[0])) {
-            return EEstadoECF.valueOf(resp[1]);
-        } else {
-            throw new Exception(resp[1]);
-        }
-    }
-
-    /**
-     * Metodo que faz a validacao se o ECF conectado e o autorizado pelo sistema.
-     *
-     * @param serie o numero de serie do ECF registrado no arquivo do PAF.
-     * @throws OpenPdvException dispara uma excecao caso nao seja o ECF esperado.
-     */
-    public static void validarSerial(String serie) throws Exception {
-        String[] resp = enviar(EComandoECF.ECF_NumSerie);
-        if (ECF.OK.equals(resp[0])) {
-            if (!serie.contains(resp[1])) {
-                throw new Exception("O ECF conectado tem o Número de Série = " + resp[1]
-                        + "\nO número de série do ECF autorizado deste PAF é = " + serie);
-            }
-        } else {
-            throw new Exception(resp[1]);
-        }
-    }
-
-    /**
-     * Metodo que faz a validacao se o ultimo numero do GT e o mesmo do ECF.
-     *
-     * @param gt o valor do grande total registrado no arquivo do PAF.
-     * @return retorna o valor do GT novo caso seja diferente.
-     * @throws OpenPdvException dispara uma excecao caso nao consiga executar.
-     */
-    public static double validarGT(double gt) throws Exception {
-        String[] resp = enviar(EComandoECF.ECF_GrandeTotal);
-        if (ECF.OK.equals(resp[0])) {
-            try {
-                double gt1 = Double.valueOf(resp[1].replace(",", "."));
-                return gt1 != gt ? gt1 : 0.00;
-            } catch (Exception ex) {
-                throw new Exception(ex.getMessage());
-            }
-        } else {
-            throw new Exception(resp[1]);
-        }
+    public static IECF getInstancia() {
+        return ecf;
     }
 }

@@ -1,18 +1,18 @@
 package br.com.phdss;
 
 /**
- * Enumerador que define os tipos de estados que o ECF pode se encontrar
+ * Enumerador que define os tipos de estados que o ECF pode se encontrar.
  *
  * @author Pedro H. Lira
  */
-public enum EEstadoECF {
+public enum EEstado {
 
     /**
-     * Porta Serial ainda não foi aberta
+     * Porta Serial ainda não foi aberta.
      */
     estNaoInicializada,
     /**
-     * Porta aberta, mas estado ainda nao definido
+     * Porta aberta, mas estado ainda nao definido.
      */
     estDesconhecido,
     /**
@@ -21,25 +21,25 @@ public enum EEstadoECF {
      */
     estLivre,
     /**
-     * Cupom de Venda Aberto com ou sem venda do 1º Item
+     * Cupom de Venda Aberto com ou sem venda do 1º Item.
      */
     estVenda,
     /**
      * Iniciado Fechamento de Cupom com Formas Pagamento pode ou não ter
      * efetuado o 1º pagamento. Não pode mais vender itens, ou alterar
-     * Sub-total;
+     * Sub-total.
      */
     estPagamento,
     /**
-     * Imprimindo Cupom Fiscal Vinculado ou Relatório Gerencial;
+     * Imprimindo Cupom Fiscal Vinculado ou Relatório Gerencial.
      */
     estRelatorio,
     /**
-     * Redução Z já emitida, bloqueada até as 00:00;
+     * Redução Z já emitida, bloqueada até as 00:00.
      */
     estBloqueada,
     /**
-     * Redução Z do dia anterior ainda não foi emitida. Emitir agora;
+     * Redução Z do dia anterior ainda não foi emitida. Emitir agora.
      */
     estRequerZ,
     /**

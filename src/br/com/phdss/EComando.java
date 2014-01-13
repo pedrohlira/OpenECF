@@ -6,7 +6,7 @@ package br.com.phdss;
  *
  * @author Pedro H. Lira
  */
-public enum EComandoECF {
+public enum EComando {
 
     /**
      * Ativa o ECF.
@@ -87,6 +87,14 @@ public enum EComandoECF {
      */
     ECF_NumECF,
     /**
+     * Retorna número do CFC (Cupom Fiscal Cancelado).
+     */
+    ECF_NumCFC,
+    /**
+     * Retorn o número do ONF (Operação Não Fiscal).
+     */
+    ECF_NumCNF,
+    /**
      * Retorna número de série do ECF.
      */
     ECF_NumSerie,
@@ -146,6 +154,18 @@ public enum EComandoECF {
      * Retorna Total Vendido Isento.
      */
     ECF_TotalIsencao,
+    /**
+     * Retorna Total Vendido Tributado.
+     */
+    ECF_TotalTributado,
+    /**
+     * Retorna Total de Sangrias.
+     */
+    ECF_TotalSangria,
+    /**
+     * Retorna Total de Suprmientos.
+     */
+    ECF_TotalSuprimento,
     /**
      * Retorna número do último item vendido.
      */
@@ -806,13 +826,9 @@ public enum EComandoECF {
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes e um booleano
      * para informar se e simplificada.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.<br>
      *
      * <b>bSimplificada</b> Um booleano para informa que deseja simplificada.
      */
@@ -823,13 +839,9 @@ public enum EComandoECF {
      *
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.<br>
      *
      * <b>bSimplificada</b> Um booleano para informa que deseja
      * simplificada.<br>
@@ -857,13 +869,9 @@ public enum EComandoECF {
      *
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.
      */
     ECF_PafMf_Lmfc_Impressao,
     /**
@@ -872,13 +880,9 @@ public enum EComandoECF {
      *
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.<br>
      *
      * <b>cArquivo</b> Um texto que informa o local onde salvar o arquivo.
      */
@@ -889,13 +893,9 @@ public enum EComandoECF {
      *
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.<br>
      *
      * <b>cArquivo</b> Um texto que informa o local onde salvar o arquivo.
      */
@@ -905,13 +905,9 @@ public enum EComandoECF {
      *
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.
      */
     ECF_PafMf_Lmfs_Impressao,
     /**
@@ -920,13 +916,9 @@ public enum EComandoECF {
      *
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.<br>
      *
      * <b>cArquivo</b> Um texto que informa o local onde salvar o arquivo.
      */
@@ -936,13 +928,9 @@ public enum EComandoECF {
      *
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.<br>
      *
      * <b>cArquivo</b> Um texto que informa o local onde salvar o arquivo.
      */
@@ -953,13 +941,9 @@ public enum EComandoECF {
      *
      * <b>Parâmetros:</b> Pode passar duas datas ou duas reducoes.<br>
      *
-     * <b>dDt.Inicial</b> A data inicial do relatorio.<br>
+     * <b>dDt.Inicial / nReducaoInicial</b> A data / reducao inicial do relatorio.<br>
      *
-     * <b>dDt.Final</b> A data final do relatorio.<br>
-     *
-     * <b>nReducaoInicial</b> A reducao inicial.<br>
-     *
-     * <b>nReducaoFinal</b> A reducao final.<br>
+     * <b>dDt.Final / nReducaoFinal</b> A data / reducao final do relatorio.<br>
      *
      * <b>cArquivo</b> Um texto que informa o local onde salvar o arquivo.
      */
