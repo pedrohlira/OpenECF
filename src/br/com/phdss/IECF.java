@@ -3,7 +3,7 @@ package br.com.phdss;
 import org.apache.log4j.Logger;
 
 /**
- * Interface que representa o ECF no sistema e todas suas funcionalidiades.
+ * Interface que representa o ECF no sistema e todas suas funcionalidades.
  *
  * @author Pedro H. Lira
  */

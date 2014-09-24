@@ -7,10 +7,12 @@ import static br.com.phdss.IECF.ENTER;
 import static br.com.phdss.IECF.ERRO;
 import static br.com.phdss.IECF.LOG;
 import static br.com.phdss.IECF.SL;
+import br.com.phdss.Util;
+import java.util.Date;
 
 /**
  * Classe que representa o ECF da Daruma no sistema e todas suas
- * funcionalidiades.
+ * funcionalidades.
  *
  * @author Pedro H. Lira
  */
@@ -23,7 +25,7 @@ public class Daruma extends Impressora {
      */
     public Daruma() {
         super();
-        System.loadLibrary("DarumaFramwork");
+        System.loadLibrary("DarumaFramework");
     }
 
     /**
@@ -45,7 +47,7 @@ public class Daruma extends Impressora {
      */
     private String[] getRetorno(int retorno, String parametro) {
         if (retorno == 1) {
-            return new String[]{OK, parametro};
+            return new String[]{OK, parametro.trim()};
         } else {
             int[] iErro = new int[1];
             ECF.rStatusUltimoCmdInt(iErro, new int[1]);
@@ -53,8 +55,8 @@ public class Daruma extends Impressora {
             char[] cIOErro = new char[300];
             ECF.eInterpretarErro(iErro[0], cIOErro);
 
-            String erro = new String(cIOErro).trim();
-            return new String[]{ERRO, erro};
+            String erro = new String(cIOErro);
+            return new String[]{ERRO, erro.trim()};
         }
     }
 
@@ -271,7 +273,7 @@ public class Daruma extends Impressora {
 
     @Override
     protected String[] efetuarPagamento(String[] params) {
-        int iRetorno = ECF.iCFEfetuarPagamento(meios[Integer.valueOf(params[0]) - 1], params[1].replace(".", ","), params[2]);
+        int iRetorno = ECF.iCFEfetuarPagamento(meios[Integer.valueOf(params[0]) - 1], params[1].replace(".", ","), "");
         return getRetorno(iRetorno);
     }
 
@@ -352,6 +354,18 @@ public class Daruma extends Impressora {
             }
         }
         //TODO identificar onde e qual nome gerado do arquivo e copiar pra o lugar do param[2]
+        return getRetorno(iRetorno);
+    }
+
+    @Override
+    protected String[] getArqMF(String path) {
+        int iRetorno = ECF.rEfetuarDownloadMF(path);
+        return getRetorno(iRetorno);
+    }
+
+    @Override
+    protected String[] getArqMFD(String path) {
+        int iRetorno = ECF.rEfetuarDownloadMFD("DATAM", "01012000", Util.formataData(new Date(), "ddMMyyyy"), path);
         return getRetorno(iRetorno);
     }
 

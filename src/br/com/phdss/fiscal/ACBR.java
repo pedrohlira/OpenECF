@@ -12,8 +12,7 @@ import java.net.Socket;
 import java.net.SocketAddress;
 
 /**
- * Classe que representa o ECF via ACBR no sistema e todas suas
- * funcionalidiades.
+ * Classe que representa o ECF via ACBR no sistema e todas suas funcionalidades.
  *
  * @author Pedro H. Lira
  */
@@ -43,8 +42,7 @@ public class ACBR implements IECF {
     @Override
     public void conectar(String porta, int velocidade, int modelo) throws Exception {
         try {
-            InetAddress ip = InetAddress.getByName("localhost");
-            SocketAddress url = new InetSocketAddress(ip, Integer.valueOf(porta));
+            SocketAddress url = new InetSocketAddress(InetAddress.getLocalHost(), Integer.valueOf(porta));
             acbr = new Socket();
             acbr.connect(url, velocidade);
             saida = new PrintWriter(acbr.getOutputStream());

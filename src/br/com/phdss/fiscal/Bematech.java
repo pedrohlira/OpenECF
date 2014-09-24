@@ -1,28 +1,24 @@
 package br.com.phdss.fiscal;
 
-import br.com.bematech.BemaInteger;
-import br.com.bematech.BemaString;
-import br.com.bematech.Fiscal;
+import bemajava.BemaInteger;
+import bemajava.BemaString;
 import br.com.phdss.EEstado;
 import br.com.phdss.Util;
 import java.io.File;
 
 /**
  * Classe que representa o ECF da Bematech no sistema e todas suas
- * funcionalidiades.
+ * funcionalidades.
  *
  * @author Pedro H. Lira
  */
 public class Bematech extends Impressora {
-
-    private final Fiscal EF;
 
     /**
      * Construtor padrao.
      */
     public Bematech() {
         super();
-        this.EF = Fiscal.EF;
     }
 
     /**
@@ -44,7 +40,7 @@ public class Bematech extends Impressora {
      */
     private String[] getRetorno(int retorno, BemaString parametro) {
         if (retorno == 1) {
-            return new String[]{OK, parametro.getBuffer()};
+            return new String[]{OK, parametro.getBuffer().trim()};
         } else {
             String erro;
             switch (retorno) {
@@ -77,13 +73,13 @@ public class Bematech extends Impressora {
                     break;
 
             }
-            return new String[]{ERRO, erro};
+            return new String[]{ERRO, erro.trim()};
         }
     }
 
     @Override
     public void ativar() throws Exception {
-        int iRetorno = EF.AbrePortaSerial();
+        int iRetorno = bemajava.Bematech.AbrePortaSerial();
         if (iRetorno != 1) {
             throw new Exception("Problemas com a comunicacao na porta do ECF.");
         }
@@ -91,21 +87,21 @@ public class Bematech extends Impressora {
 
     @Override
     public void conectar(String porta, int velocidade, int modelo) throws Exception {
-        EF.HabilitaDesabilitaRetornoEstendidoMFD("1");
-        EF.AtivaDesativaCorteProximoMFD();
-        EF.AtivaDesativaCorteTotalMFD(1);
-        EF.AtivaDesativaGuilhotinaMFD((short) 1);
+        bemajava.Bematech.HabilitaDesabilitaRetornoEstendidoMFD("1");
     }
 
     @Override
     public void desativar() {
-        EF.FechaPortaSerial();
+        bemajava.Bematech.FechaPortaSerial();
     }
 
     @Override
     public EEstado validarEstado() throws Exception {
+        BemaInteger ack = new BemaInteger();
+        BemaInteger st1 = new BemaInteger();
+        BemaInteger st2 = new BemaInteger();
         BemaInteger st3 = new BemaInteger();
-        EF.RetornoImpressoraMFD(new BemaInteger(), new BemaInteger(), new BemaInteger(), st3);
+        bemajava.Bematech.RetornoImpressoraMFD(ack, st1, st2, st3);
 
         EEstado estado;
         switch (st3.getNumber()) {
@@ -139,13 +135,13 @@ public class Bematech extends Impressora {
 
     @Override
     protected String[] abrirGaveta() {
-        EF.AcionaGaveta();
+        bemajava.Bematech.AcionaGaveta();
         return new String[]{OK, ""};
     }
 
     @Override
     protected String[] cortarPapel() {
-        EF.AcionaGuilhotinaMFD(1);
+        bemajava.Bematech.AcionaGuilhotinaMFD(1);
         return new String[]{OK, ""};
     }
 
@@ -154,7 +150,7 @@ public class Bematech extends Impressora {
         BemaString data = new BemaString();
         BemaString hora = new BemaString();
         BemaString dataHora = new BemaString();
-        int iRetorno = EF.DataHoraImpressora(data, hora);
+        int iRetorno = bemajava.Bematech.DataHoraImpressora(data, hora);
         dataHora.setBuffer(Util.formataTexto(data.getBuffer() + hora.getBuffer(), "##/##/## ##:##:##"));
         return getRetorno(iRetorno, dataHora);
     }
@@ -162,83 +158,83 @@ public class Bematech extends Impressora {
     @Override
     protected String[] getDataHoraSB() {
         BemaString dataHora = new BemaString();
-        int iRetorno = EF.DataHoraGravacaoUsuarioSWBasicoMFAdicional(new BemaString(), dataHora, new BemaString());
+        int iRetorno = bemajava.Bematech.DataHoraGravacaoUsuarioSWBasicoMFAdicional(new BemaString(), dataHora, new BemaString());
         return getRetorno(iRetorno, dataHora);
     }
 
     @Override
     protected String[] getVersao() {
         BemaString versao = new BemaString();
-        int iRetorno = EF.VersaoFirmwareMFD(versao);
+        int iRetorno = bemajava.Bematech.VersaoFirmwareMFD(versao);
         return getRetorno(iRetorno, versao);
     }
 
     @Override
     protected String[] getNumECF() {
         BemaString ecf = new BemaString();
-        int iRetorno = EF.NumeroCaixa(ecf);
+        int iRetorno = bemajava.Bematech.NumeroCaixa(ecf);
         return getRetorno(iRetorno, ecf);
     }
 
     @Override
     protected String[] getNumCCF() {
         BemaString ccf = new BemaString();
-        int iRetorno = EF.ContadorCupomFiscalMFD(ccf);
+        int iRetorno = bemajava.Bematech.ContadorCupomFiscalMFD(ccf);
         return getRetorno(iRetorno, ccf);
     }
 
     @Override
     protected String[] getNumCupom() {
         BemaString coo = new BemaString();
-        int iRetorno = EF.NumeroCupom(coo);
+        int iRetorno = bemajava.Bematech.NumeroCupom(coo);
         return getRetorno(iRetorno, coo);
     }
 
     @Override
     protected String[] getNumItem() {
         BemaString item = new BemaString();
-        int iRetorno = EF.UltimoItemVendido(item);
+        int iRetorno = bemajava.Bematech.UltimoItemVendido(item);
         return getRetorno(iRetorno, item);
     }
 
     @Override
     protected String[] getNumSerie() {
         BemaString serie = new BemaString();
-        int iRetorno = EF.NumeroSerie(serie);
+        int iRetorno = bemajava.Bematech.NumeroSerieMFD(serie);
         return getRetorno(iRetorno, serie);
     }
 
     @Override
     protected String[] getNumGT() {
         BemaString gt = new BemaString();
-        int iRetorno = EF.GrandeTotal(gt);
+        int iRetorno = bemajava.Bematech.GrandeTotal(gt);
         return getRetorno(iRetorno, gt);
     }
 
     @Override
     protected String[] getNumGNF() {
         BemaString gnf = new BemaString();
-        int iRetorno = EF.NumeroOperacoesNaoFiscais(gnf);
+        int iRetorno = bemajava.Bematech.NumeroOperacoesNaoFiscais(gnf);
         return getRetorno(iRetorno, gnf);
     }
 
     @Override
     protected String[] getGRG() {
         BemaString grg = new BemaString();
-        int iRetorno = EF.ContadorRelatoriosGerenciaisMFD(grg);
+        int iRetorno = bemajava.Bematech.ContadorRelatoriosGerenciaisMFD(grg);
         return getRetorno(iRetorno, grg);
     }
 
     @Override
     protected String[] getCDC() {
         BemaString cdc = new BemaString();
-        int iRetorno = EF.ContadorComprovantesCreditoMFD(cdc);
+        int iRetorno = bemajava.Bematech.ContadorComprovantesCreditoMFD(cdc);
         return getRetorno(iRetorno, cdc);
     }
 
     @Override
     protected String[] abrirRelatorio(String rel) {
-        int iRetorno = EF.AbreRelatorioGerencialMFD(rel);
+        int iRetorno = bemajava.Bematech.AbreRelatorioGerencialMFD(rel);
         return getRetorno(iRetorno);
     }
 
@@ -252,27 +248,27 @@ public class Bematech extends Impressora {
             }
             sb.append(linha).append(ENTER);
         }
-        int iRetorno = EF.UsaRelatorioGerencialMFD(sb.toString());
+        int iRetorno = bemajava.Bematech.UsaRelatorioGerencialMFD(sb.toString());
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] abrirCupomVinculado(String[] params) {
-        int iRetorno = EF.AbreComprovanteNaoFiscalVinculadoMFD(params[1], Util.formataNumero(params[3], 1, 2, false), params[0], "", "", "");
+        int iRetorno = bemajava.Bematech.AbreComprovanteNaoFiscalVinculadoMFD(params[1], Util.formataNumero(params[3], 1, 2, false), params[0], "", "", "");
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] linhaCupomVinculado(String texto) {
         texto = texto.replaceAll("\\" + SL, ENTER);
-        int iRetorno = EF.UsaComprovanteNaoFiscalVinculado(texto);
+        int iRetorno = bemajava.Bematech.UsaComprovanteNaoFiscalVinculado(texto);
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] fecharRelatorio() {
-        EF.FechaRelatorioGerencial();
-        EF.FechaComprovanteNaoFiscalVinculado();
+        bemajava.Bematech.FechaRelatorioGerencial();
+        bemajava.Bematech.FechaComprovanteNaoFiscalVinculado();
         return new String[]{OK, ""};
     }
 
@@ -282,7 +278,7 @@ public class Bematech extends Impressora {
         for (int i = 0; i < linhas; i++) {
             sb.append(ENTER);
         }
-        int iRetorno = EF.UsaRelatorioGerencialMFD(sb.toString());
+        int iRetorno = bemajava.Bematech.UsaRelatorioGerencialMFD(sb.toString());
         return getRetorno(iRetorno);
     }
 
@@ -297,39 +293,41 @@ public class Bematech extends Impressora {
             end = identificado[2];
         }
 
-        int iRetorno = EF.AbreCupomMFD(cpf, nome, end);
+        int iRetorno = bemajava.Bematech.AbreCupomMFD(cpf, nome, end);
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] adicionarItem(String[] params) {
         String aliq = params[2].replace(".", ",").replace("T", "").replace("S", "");
-        int iRetorno = EF.VendeItemArredondamentoMFD(params[0], params[1], aliq, params[6], params[3].replace(".", ","), params[4].replace(".", ","), "0,00", "0,00", true);
+        String qtd = Util.formataNumero(params[3], 1, 3, false);
+        String valor = Util.formataNumero(params[4], 1, 3, false);
+        int iRetorno = bemajava.Bematech.VendeItemDepartamento(params[0], params[1], aliq, valor, qtd, "0", "0", "01", params[6]);
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] cancelarItem(String item) {
-        int iRetorno = EF.CancelaItemGenerico(item);
+        int iRetorno = bemajava.Bematech.CancelaItemGenerico(item);
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] totalizarCupom(String asc_desc) {
         String modo = asc_desc.contains("-") ? "D" : "A";
-        int iRetorno = EF.IniciaFechamentoCupomMFD(modo, "$", asc_desc.replace(".", ","), asc_desc.replace(".", ","));
+        int iRetorno = bemajava.Bematech.IniciaFechamentoCupomMFD(modo, "$", asc_desc.replace(".", ","), asc_desc.replace(".", ","));
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] efetuarPagamento(String[] params) {
-        int iRetorno = EF.EfetuaFormaPagamentoIndiceDescricaoForma(params[0], params[1].replace(".", ","), params[2]);
+        int iRetorno = bemajava.Bematech.EfetuaFormaPagamentoIndiceMFD(params[0], params[1].replace(".", ","), "0", "");
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] fecharCupom() {
-        int iRetorno = EF.TerminaFechamentoCupom(this.observacoes);
+        int iRetorno = bemajava.Bematech.TerminaFechamentoCupom(this.observacoes);
         this.identificado = null;
         this.observacoes = "";
         return getRetorno(iRetorno);
@@ -337,33 +335,42 @@ public class Bematech extends Impressora {
 
     @Override
     protected String[] cancelarCupom() {
+        String cpf = "";
+        String nome = "";
+        String end = "";
+        if (identificado != null) {
+            cpf = identificado[0];
+            nome = identificado[1];
+            end = identificado[2];
+        }
+
         this.identificado = null;
         this.observacoes = "";
-        int iRetorno = EF.CancelaCupom();
+        int iRetorno = bemajava.Bematech.CancelaCupomMFD(cpf, nome, end);
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] sangria(String valor) {
-        int iRetorno = EF.Sangria(Util.formataNumero(valor, 1, 2, false));
+        int iRetorno = bemajava.Bematech.Sangria(Util.formataNumero(valor, 1, 2, false));
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] suprimento(String valor) {
-        int iRetorno = EF.Suprimento(Util.formataNumero(valor, 1, 2, false), "");
+        int iRetorno = bemajava.Bematech.Suprimento(Util.formataNumero(valor, 1, 2, false), "");
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] leituraX() {
-        int iRetorno = EF.LeituraX();
+        int iRetorno = bemajava.Bematech.LeituraX();
         return getRetorno(iRetorno);
     }
 
     @Override
     protected String[] reducaoZ() {
-        int iRetorno = EF.ReducaoZ("", "");
+        int iRetorno = bemajava.Bematech.ReducaoZ("", "");
         return getRetorno(iRetorno);
     }
 
@@ -371,7 +378,7 @@ public class Bematech extends Impressora {
     protected String[] getDadosZ() {
         //TODO fazer o parser dos dados para ficar que nem o ini do acbr
         BemaString z = new BemaString();
-        int iRetorno = EF.DadosUltimaReducaoMFD(z);
+        int iRetorno = bemajava.Bematech.DadosUltimaReducaoMFD(z);
         String[] resp = z.getBuffer().split(",");
         for (String r : resp) {
             LOG.debug(r);
@@ -384,15 +391,15 @@ public class Bematech extends Impressora {
         int iRetorno;
         if (params[2] == null) {
             if (params[0].contains("/")) {
-                iRetorno = EF.LeituraMemoriaFiscalDataMFD(params[0], params[1], tipo);
+                iRetorno = bemajava.Bematech.LeituraMemoriaFiscalDataMFD(params[0], params[1], tipo);
             } else {
-                iRetorno = EF.LeituraMemoriaFiscalReducaoMFD(params[0], params[1], tipo);
+                iRetorno = bemajava.Bematech.LeituraMemoriaFiscalReducaoMFD(params[0], params[1], tipo);
             }
         } else {
             if (params[0].contains("/")) {
-                iRetorno = EF.LeituraMemoriaFiscalSerialDataMFD(params[0], params[1], tipo);
+                iRetorno = bemajava.Bematech.LeituraMemoriaFiscalSerialDataMFD(params[0], params[1], tipo);
             } else {
-                iRetorno = EF.LeituraMemoriaFiscalSerialReducaoMFD(params[0], params[1], tipo);
+                iRetorno = bemajava.Bematech.LeituraMemoriaFiscalSerialReducaoMFD(params[0], params[1], tipo);
             }
             try {
                 Util.assinarArquivoEAD("C:\\Retorno.txt");
@@ -411,15 +418,15 @@ public class Bematech extends Impressora {
         int iRetorno;
         if (tipo.equals("C") || tipo.equals("Z")) {
             if (params[0].contains("/")) {
-                iRetorno = EF.ArquivoMFD("", params[0], params[1], "D", "01", 1, "", "", 1);
+                iRetorno = bemajava.Bematech.ArquivoMFD("", params[0], params[1], "D", "01", 1, "", "", 1);
             } else {
-                iRetorno = EF.ArquivoMFD("", params[0], params[1], tipo, "01", 1, "", "", 1);
+                iRetorno = bemajava.Bematech.ArquivoMFD("", params[0], params[1], tipo, "01", 1, "", "", 1);
             }
         } else {
             if (params[0].contains("/")) {
-                iRetorno = EF.EspelhoMFD("", params[0], params[1], "D", "01", "", "");
+                iRetorno = bemajava.Bematech.EspelhoMFD("", params[0], params[1], "D", "01", "", "");
             } else {
-                iRetorno = EF.EspelhoMFD("", params[0], params[1], "C", "01", "", "");
+                iRetorno = bemajava.Bematech.EspelhoMFD("", params[0], params[1], "C", "01", "", "");
             }
         }
         try {
@@ -430,6 +437,18 @@ public class Bematech extends Impressora {
             LOG.error("Problemas ao assinar ou mover o arquivo gerado.", ex);
             return new String[]{ERRO, "Problemas ao assinar ou mover o arquivo gerado."};
         }
+        return getRetorno(iRetorno);
+    }
+
+    @Override
+    protected String[] getArqMF(String path) {
+        int iRetorno = bemajava.Bematech.DownloadMF(path);
+        return getRetorno(iRetorno);
+    }
+
+    @Override
+    protected String[] getArqMFD(String path) {
+        int iRetorno = bemajava.Bematech.DownloadMFD(path, "0", "", "", "");
         return getRetorno(iRetorno);
     }
 }

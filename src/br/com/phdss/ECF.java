@@ -32,7 +32,7 @@ public class ECF {
     /**
      * Metodo que constroi um objeto do tipo IECF e devolve para o solicitante.
      *
-     * @return o objeto instaciado solicitado.
+     * @return o objeto instanciado solicitado.
      */
     public static IECF getInstancia() {
         return ecf;

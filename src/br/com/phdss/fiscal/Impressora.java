@@ -7,8 +7,7 @@ import static br.com.phdss.IECF.ERRO;
 import static br.com.phdss.IECF.OK;
 
 /**
- * Classe que representa o ECF generico no sistema e todas suas
- * funcionalidiades.
+ * Classe que representa o ECF generico no sistema e todas suas funcionalidades.
  *
  * @author Pedro H. Lira
  */
@@ -183,6 +182,12 @@ public abstract class Impressora implements IECF {
             case ECF_PafMf_Mfd_Espelho:
                 resp = getMFD("E", parametros);
                 break;
+            case ECF_PafMF_ArqMF:
+                resp = getArqMF(parametros[0]);
+                break;
+            case ECF_PafMF_ArqMFD:
+                resp = getArqMFD(parametros[0]);
+                break;
             default:
                 resp = new String[]{ERRO, "Comando nao implementado neste sistema."};
                 break;
@@ -331,7 +336,7 @@ public abstract class Impressora implements IECF {
      * Metodo que abre um relatorio vinculado tipo TEF.
      *
      * @param params dados para enviar ao ECF.
-     * @see EComando.ECF_AbreCupomVinculado
+     * @see EComando#ECF_AbreCupomVinculado
      * @return um Array com OK ou ERRO.
      */
     protected abstract String[] abrirCupomVinculado(String[] params);
@@ -370,7 +375,7 @@ public abstract class Impressora implements IECF {
      * Metodo que adiciona um item ao cupom fiscal.
      *
      * @param params dados para enviar ao ECF.
-     * @see EComando.ECF_VendeItem
+     * @see EComando#ECF_VendeItem
      * @return um Array com OK ou ERRO.
      */
     protected abstract String[] adicionarItem(String[] params);
@@ -468,4 +473,19 @@ public abstract class Impressora implements IECF {
      */
     protected abstract String[] getMFD(String tipo, String[] params);
 
+    /**
+     * Metodo que recupera o arquivo binario do ECF.
+     *
+     * @param path o caminho completo do nome do arquivo.
+     * @return um Array com OK ou ERRO.
+     */
+    protected abstract String[] getArqMF(String path);
+
+    /**
+     * Metodo que recupera o arquivo binario do ECF.
+     *
+     * @param path o caminho completo do nome do arquivo.
+     * @return um Array com OK ou ERRO.
+     */
+    protected abstract String[] getArqMFD(String path);
 }

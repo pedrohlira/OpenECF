@@ -3,6 +3,7 @@ Abaixo estao as libs e versoes usadas no sistema
 # Outras
 loj4j-1.2.16.jar
 jna.jar
-jasyot.jar
+platform.jar
+jasypt.jar
 BematechFrameworkJNA.jar
 DarumaFrameworkJNA.jar
