@@ -3,13 +3,17 @@ package br.com.phdss.fiscal;
 import br.com.phdss.EComando;
 import br.com.phdss.EEstado;
 import br.com.phdss.IECF;
+import static br.com.phdss.IECF.OK;
+import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.SocketAddress;
+import org.ini4j.Wini;
 
 /**
  * Classe que representa o ECF via ACBR no sistema e todas suas funcionalidades.
@@ -130,6 +134,7 @@ public class ACBR implements IECF {
         }
     }
 
+    
     @Override
     public double validarGT(double gt) throws Exception {
         String[] resp = enviar(EComando.ECF_GrandeTotal);
@@ -143,6 +148,20 @@ public class ACBR implements IECF {
         } else {
             throw new Exception(resp[1]);
         }
+    }
+
+    @Override
+    public boolean validarGT(int crz, int cro, double bruto) throws Exception {
+        // pega os dados
+        String[] dados = enviar(EComando.ECF_DadosUltimaReducaoZ);
+        InputStream stream = new ByteArrayInputStream(dados[1].replace(",", ".").getBytes("UTF-8"));
+        Wini ini = new Wini(stream);
+
+        int ecfCRZ = ini.get("ECF", "NumCRZ", int.class);
+        int ecfCRO = ini.get("ECF", "NumCRO", int.class);
+        double ecfBruto = ini.get("Totalizadores", "VendaBruta", double.class);
+
+        return crz == ecfCRZ && cro == ecfCRO && bruto == ecfBruto;
     }
 
     @Override

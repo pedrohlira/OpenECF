@@ -5,6 +5,9 @@ import br.com.phdss.EEstado;
 import br.com.phdss.IECF;
 import static br.com.phdss.IECF.ERRO;
 import static br.com.phdss.IECF.OK;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import org.ini4j.Wini;
 
 /**
  * Classe que representa o ECF generico no sistema e todas suas funcionalidades.
@@ -37,6 +40,20 @@ public abstract class Impressora implements IECF {
         } else {
             throw new Exception("Erro ao recuperar o GT.");
         }
+    }
+
+    @Override
+    public boolean validarGT(int crz, int cro, double bruto) throws Exception {
+        // pega os dados
+        String[] dados = enviar(EComando.ECF_DadosUltimaReducaoZ);
+        InputStream stream = new ByteArrayInputStream(dados[1].replace(",", ".").getBytes("UTF-8"));
+        Wini ini = new Wini(stream);
+
+        int ecfCRZ = ini.get("ECF", "NumCRZ", int.class);
+        int ecfCRO = ini.get("ECF", "NumCRO", int.class);
+        double ecfBruto = ini.get("Totalizadores", "VendaBruta", double.class);
+
+        return crz == ecfCRZ && cro == ecfCRO && bruto == ecfBruto;
     }
 
     @Override
@@ -161,26 +178,11 @@ public abstract class Impressora implements IECF {
             case ECF_DadosUltimaReducaoZ:
                 resp = getDadosZ();
                 break;
-            case ECF_PafMf_Lmfc_Espelho:
-                resp = getLMF("c", parametros);
-                break;
             case ECF_PafMf_Lmfc_Impressao:
                 resp = getLMF("c", parametros);
                 break;
-            case ECF_PafMf_Lmfs_Espelho:
-                resp = getLMF("s", parametros);
-                break;
             case ECF_PafMf_Lmfs_Impressao:
                 resp = getLMF("s", parametros);
-                break;
-            case ECF_PafMf_Lmfc_Cotepe1704:
-                resp = getMFD("Z", parametros);
-                break;
-            case ECF_PafMf_Mfd_Cotepe1704:
-                resp = getMFD("C", parametros);
-                break;
-            case ECF_PafMf_Mfd_Espelho:
-                resp = getMFD("E", parametros);
                 break;
             case ECF_PafMF_ArqMF:
                 resp = getArqMF(parametros[0]);
@@ -463,15 +465,6 @@ public abstract class Impressora implements IECF {
      * @return um Array com OK ou ERRO.
      */
     protected abstract String[] getLMF(String tipo, String[] params);
-
-    /**
-     * Metodo que emite uma Memoria Fiscal Detalhe em arquivo.
-     *
-     * @param tipo o tipo da leitura solicitado.
-     * @param params datas / contadores de inicio e fim.
-     * @return um Array com OK ou ERRO.
-     */
-    protected abstract String[] getMFD(String tipo, String[] params);
 
     /**
      * Metodo que recupera o arquivo binario do ECF.

@@ -86,11 +86,22 @@ public interface IECF {
     /**
      * Metodo que faz a validacao se o ultimo numero do GT e o mesmo do ECF.
      *
-     * @param gt o valor do grande total registrado no arquivo do PAF.
+     * @param gt o valor do gt atual.
      * @return retorna o valor do GT novo caso seja diferente.
      * @throws Exception dispara uma excecao caso nao consiga executar.
      */
     public double validarGT(double gt) throws Exception;
+    
+    /**
+     * Metodo que faz a validacao se pode recuperar o GT automaticamente.
+     *
+     * @param crz ultima reducao z.
+     * @param cro ultimo registro de operacao.
+     * @param bruto valor bruto da ultima z.
+     * @return retorna true se pode recuperar, false caso contrario.
+     * @throws Exception dispara uma excecao caso nao consiga executar.
+     */
+    public boolean validarGT(int crz, int cro, double bruto) throws Exception;
 
     /**
      * Metodo que faz a validacao se o ECF conectado e o autorizado pelo

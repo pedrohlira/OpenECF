@@ -82,7 +82,8 @@ public class Daruma extends Impressora {
 
     @Override
     public EEstado validarEstado() throws Exception {
-        throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        //TODO pegar os status da daruma, ver quais comando
+        return EEstado.estLivre;
     }
 
     @Override
@@ -327,33 +328,7 @@ public class Daruma extends Impressora {
     protected String[] getLMF(String tipo, String[] params) {
         // configura se completa ou simplificada
         UTIL.regAlterarValor("ECF\\LMFCompleta", tipo.equals("c") ? "1" : "0");
-        int iRetorno;
-        if (params[2] == null) {
-            iRetorno = ECF.iMFLer(params[0].replace("/", ""), params[1]);
-        } else {
-            iRetorno = ECF.iMFLerSerial(params[0].replace("/", ""), params[1]);
-            //TODO identificar onde e qual nome gerado do arquivo e copiar pra o lugar do param[2]
-        }
-        return getRetorno(iRetorno);
-    }
-
-    @Override
-    protected String[] getMFD(String tipo, String[] params) {
-        int iRetorno;
-        if (tipo.equals("C") || tipo.equals("Z")) {
-            if (params[0].contains("/")) {
-                iRetorno = ECF.rGerarMFD("DATAM", params[0], params[1]);
-            } else {
-                iRetorno = ECF.rGerarMFD(tipo.equals("C") ? "COO" : "CRZ", params[0], params[1]);
-            }
-        } else {
-            if (params[0].contains("/")) {
-                iRetorno = ECF.rGerarEspelhoMFD("DATAM", params[0], params[1]);
-            } else {
-                iRetorno = ECF.rGerarEspelhoMFD("COO", params[0], params[1]);
-            }
-        }
-        //TODO identificar onde e qual nome gerado do arquivo e copiar pra o lugar do param[2]
+        int iRetorno = ECF.iMFLer(params[0].replace("/", ""), params[1]);
         return getRetorno(iRetorno);
     }
 

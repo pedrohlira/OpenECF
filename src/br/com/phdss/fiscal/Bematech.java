@@ -4,7 +4,6 @@ import bemajava.BemaInteger;
 import bemajava.BemaString;
 import br.com.phdss.EEstado;
 import br.com.phdss.Util;
-import java.io.File;
 
 /**
  * Classe que representa o ECF da Bematech no sistema e todas suas
@@ -389,53 +388,10 @@ public class Bematech extends Impressora {
     @Override
     protected String[] getLMF(String tipo, String[] params) {
         int iRetorno;
-        if (params[2] == null) {
-            if (params[0].contains("/")) {
-                iRetorno = bemajava.Bematech.LeituraMemoriaFiscalDataMFD(params[0], params[1], tipo);
-            } else {
-                iRetorno = bemajava.Bematech.LeituraMemoriaFiscalReducaoMFD(params[0], params[1], tipo);
-            }
+        if (params[0].contains("/")) {
+            iRetorno = bemajava.Bematech.LeituraMemoriaFiscalDataMFD(params[0], params[1], tipo);
         } else {
-            if (params[0].contains("/")) {
-                iRetorno = bemajava.Bematech.LeituraMemoriaFiscalSerialDataMFD(params[0], params[1], tipo);
-            } else {
-                iRetorno = bemajava.Bematech.LeituraMemoriaFiscalSerialReducaoMFD(params[0], params[1], tipo);
-            }
-            try {
-                Util.assinarArquivoEAD("C:\\Retorno.txt");
-                File arquivo = new File("C:\\Retorno.txt");
-                arquivo.renameTo(new File(params[2]));
-            } catch (Exception ex) {
-                LOG.error("Problemas ao assinar ou mover o arquivo gerado.", ex);
-                return new String[]{ERRO, "Problemas ao assinar ou mover o arquivo gerado."};
-            }
-        }
-        return getRetorno(iRetorno);
-    }
-
-    @Override
-    protected String[] getMFD(String tipo, String[] params) {
-        int iRetorno;
-        if (tipo.equals("C") || tipo.equals("Z")) {
-            if (params[0].contains("/")) {
-                iRetorno = bemajava.Bematech.ArquivoMFD("", params[0], params[1], "D", "01", 1, "", "", 1);
-            } else {
-                iRetorno = bemajava.Bematech.ArquivoMFD("", params[0], params[1], tipo, "01", 1, "", "", 1);
-            }
-        } else {
-            if (params[0].contains("/")) {
-                iRetorno = bemajava.Bematech.EspelhoMFD("", params[0], params[1], "D", "01", "", "");
-            } else {
-                iRetorno = bemajava.Bematech.EspelhoMFD("", params[0], params[1], "C", "01", "", "");
-            }
-        }
-        try {
-            Util.assinarArquivoEAD("C:\\Retorno.txt");
-            File arquivo = new File("C:\\Retorno.txt");
-            arquivo.renameTo(new File(params[2]));
-        } catch (Exception ex) {
-            LOG.error("Problemas ao assinar ou mover o arquivo gerado.", ex);
-            return new String[]{ERRO, "Problemas ao assinar ou mover o arquivo gerado."};
+            iRetorno = bemajava.Bematech.LeituraMemoriaFiscalReducaoMFD(params[0], params[1], tipo);
         }
         return getRetorno(iRetorno);
     }
