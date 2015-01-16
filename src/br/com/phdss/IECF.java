@@ -1,5 +1,6 @@
 package br.com.phdss;
 
+import java.util.Map;
 import org.apache.log4j.Logger;
 
 /**
@@ -91,7 +92,7 @@ public interface IECF {
      * @throws Exception dispara uma excecao caso nao consiga executar.
      */
     public double validarGT(double gt) throws Exception;
-    
+
     /**
      * Metodo que faz a validacao se pode recuperar o GT automaticamente.
      *
@@ -112,4 +113,10 @@ public interface IECF {
      */
     public void validarSerial(String serie) throws Exception;
 
+    /**
+     * Metodo que retorna o mapa com os dados da ultima Z emitida.
+     *
+     * @return um mapa de dados, sendo a chave o significado do dado.
+     */
+    public Map<String, Object> getDadosZ();
 }

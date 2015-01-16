@@ -374,6 +374,24 @@ public enum EComando {
      */
     ECF_IdentificaConsumidor,
     /**
+     * Permite gravar no ECF informações sobre operadores.
+     * 
+     * <b>Parâmetros:</b><br>
+     * 
+     * <b>cNome</b> - Nome do operador.<br>
+     */
+    ECF_IdentificaOperador,
+    /**
+     * Permite gravar no ECF, informações sobre o Programa Aplicativo Fiscal (PAF) em operação. Esta informação deve ser impressa em todos os cupons, de acordo com a lei atual.
+     * 
+     * <b>Parâmetros:</b><br>
+     * 
+     * <b>cNomeVersao</b> - Nome e versão do aplicativo fiscal.<br>
+     * 
+     * <b>cMD5</b> - Numero do MD5.<br>
+     */
+    ECF_IdentificaPAF,
+    /**
      * O Método Vende Item inform ao ECF o item a ser vendido.<br><br>
      *
      * <b>Parâmetros:</b><br>

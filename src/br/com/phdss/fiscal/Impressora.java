@@ -3,11 +3,7 @@ package br.com.phdss.fiscal;
 import br.com.phdss.EComando;
 import br.com.phdss.EEstado;
 import br.com.phdss.IECF;
-import static br.com.phdss.IECF.ERRO;
-import static br.com.phdss.IECF.OK;
-import java.io.ByteArrayInputStream;
-import java.io.InputStream;
-import org.ini4j.Wini;
+import java.util.Map;
 
 /**
  * Classe que representa o ECF generico no sistema e todas suas funcionalidades.
@@ -45,14 +41,10 @@ public abstract class Impressora implements IECF {
     @Override
     public boolean validarGT(int crz, int cro, double bruto) throws Exception {
         // pega os dados
-        String[] dados = enviar(EComando.ECF_DadosUltimaReducaoZ);
-        InputStream stream = new ByteArrayInputStream(dados[1].replace(",", ".").getBytes("UTF-8"));
-        Wini ini = new Wini(stream);
-
-        int ecfCRZ = ini.get("ECF", "NumCRZ", int.class);
-        int ecfCRO = ini.get("ECF", "NumCRO", int.class);
-        double ecfBruto = ini.get("Totalizadores", "VendaBruta", double.class);
-
+        Map<String, Object> dados = getDadosZ();
+        int ecfCRZ = (int) dados.get("NumCRZ");
+        int ecfCRO = (int) dados.get("NumCRO");
+        double ecfBruto = (double) dados.get("VendaBruta");
         return crz == ecfCRZ && cro == ecfCRO && bruto == ecfBruto;
     }
 
@@ -91,6 +83,9 @@ public abstract class Impressora implements IECF {
             case ECF_GrandeTotal:
                 resp = getNumGT();
                 break;
+            case ECF_VendaBruta:
+                resp = getNumBruto();
+                break;
             case ECF_NumVersao:
                 resp = getVersao();
                 break;
@@ -113,10 +108,16 @@ public abstract class Impressora implements IECF {
                 resp = getNumGNF();
                 break;
             case ECF_NumGRG:
-                resp = getGRG();
+                resp = getNumGRG();
                 break;
             case ECF_NumCDC:
-                resp = getCDC();
+                resp = getNumCDC();
+                break;
+            case ECF_NumCRO:
+                resp = getNumCRO();
+                break;
+            case ECF_NumCRZ:
+                resp = getNumCRZ();
                 break;
             case ECF_AbreRelatorioGerencial:
                 resp = abrirRelatorio(parametros[0]);
@@ -176,7 +177,7 @@ public abstract class Impressora implements IECF {
                 break;
             case ECF_DadosReducaoz:
             case ECF_DadosUltimaReducaoZ:
-                resp = getDadosZ();
+                resp = new String[]{ERRO, "Utilize o comando getDadosZ."};
                 break;
             case ECF_PafMf_Lmfc_Impressao:
                 resp = getLMF("c", parametros);
@@ -298,6 +299,13 @@ public abstract class Impressora implements IECF {
     protected abstract String[] getNumGT();
 
     /**
+     * Metodo que retorna a venda bruta do ECF.
+     *
+     * @return um Array com OK ou ERRO.
+     */
+    protected abstract String[] getNumBruto();
+
+    /**
      * Metodo que retorna o geral nao fiscal do ECF.
      *
      * @return um Array com OK ou ERRO.
@@ -309,14 +317,28 @@ public abstract class Impressora implements IECF {
      *
      * @return um Array com OK ou ERRO.
      */
-    protected abstract String[] getGRG();
+    protected abstract String[] getNumGRG();
 
     /**
      * Metodo que retorna o contador de debito ou credito do ECF.
      *
      * @return um Array com OK ou ERRO.
      */
-    protected abstract String[] getCDC();
+    protected abstract String[] getNumCDC();
+
+    /**
+     * Metodo que retorna o contador de reducoes Operacionais do ECF.
+     *
+     * @return um Array com OK ou ERRO.
+     */
+    protected abstract String[] getNumCRO();
+
+    /**
+     * Metodo que retorna o contador de reducoes Z do ECF.
+     *
+     * @return um Array com OK ou ERRO.
+     */
+    protected abstract String[] getNumCRZ();
 
     /**
      * Matodo que abre um relatorio nao fiscal.
@@ -449,13 +471,6 @@ public abstract class Impressora implements IECF {
      * @return um Array com OK ou ERRO.
      */
     protected abstract String[] reducaoZ();
-
-    /**
-     * Metodo que recupera os dados da ultima reducao Z emitida.
-     *
-     * @return um Array com OK ou ERRO.
-     */
-    protected abstract String[] getDadosZ();
 
     /**
      * Metodo que emite uma Leitura de Memoria Fiscal.

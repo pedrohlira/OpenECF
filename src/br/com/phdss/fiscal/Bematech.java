@@ -4,6 +4,10 @@ import bemajava.BemaInteger;
 import bemajava.BemaString;
 import br.com.phdss.EEstado;
 import br.com.phdss.Util;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Classe que representa o ECF da Bematech no sistema e todas suas
@@ -96,33 +100,21 @@ public class Bematech extends Impressora {
 
     @Override
     public EEstado validarEstado() throws Exception {
-        BemaInteger ack = new BemaInteger();
-        BemaInteger st1 = new BemaInteger();
-        BemaInteger st2 = new BemaInteger();
-        BemaInteger st3 = new BemaInteger();
-        bemajava.Bematech.RetornoImpressoraMFD(ack, st1, st2, st3);
+        BemaInteger status = new BemaInteger();
+        bemajava.Bematech.FlagsFiscais(status);
 
         EEstado estado;
-        switch (st3.getNumber()) {
-            case 2:
-                estado = EEstado.estDesconhecido;
-                break;
-            case 7:
+        switch (status.getNumber()) {
+            case 1:
                 estado = EEstado.estVenda;
                 break;
-            case 9:
-                estado = EEstado.estRelatorio;
-                break;
-            case 43:
-                estado = EEstado.estNaoInicializada;
-                break;
-            case 63:
-                estado = EEstado.estBloqueada;
-                break;
-            case 64:
+            case 2:
                 estado = EEstado.estPagamento;
                 break;
-            case 65:
+            case 8:
+                estado = EEstado.estBloqueada;
+                break;
+            case 32:
                 estado = EEstado.estRequerZ;
                 break;
             default:
@@ -211,6 +203,13 @@ public class Bematech extends Impressora {
     }
 
     @Override
+    protected String[] getNumBruto() {
+        BemaString bruto = new BemaString();
+        int iRetorno = bemajava.Bematech.VendaBruta(bruto);
+        return getRetorno(iRetorno, bruto);
+    }
+
+    @Override
     protected String[] getNumGNF() {
         BemaString gnf = new BemaString();
         int iRetorno = bemajava.Bematech.NumeroOperacoesNaoFiscais(gnf);
@@ -218,17 +217,31 @@ public class Bematech extends Impressora {
     }
 
     @Override
-    protected String[] getGRG() {
+    protected String[] getNumGRG() {
         BemaString grg = new BemaString();
         int iRetorno = bemajava.Bematech.ContadorRelatoriosGerenciaisMFD(grg);
         return getRetorno(iRetorno, grg);
     }
 
     @Override
-    protected String[] getCDC() {
+    protected String[] getNumCDC() {
         BemaString cdc = new BemaString();
         int iRetorno = bemajava.Bematech.ContadorComprovantesCreditoMFD(cdc);
         return getRetorno(iRetorno, cdc);
+    }
+
+    @Override
+    protected String[] getNumCRO() {
+        BemaString cro = new BemaString();
+        int iRetorno = bemajava.Bematech.NumeroIntervencoes(cro);
+        return getRetorno(iRetorno, cro);
+    }
+
+    @Override
+    protected String[] getNumCRZ() {
+        BemaString crz = new BemaString();
+        int iRetorno = bemajava.Bematech.NumeroReducoes(crz);
+        return getRetorno(iRetorno, crz);
     }
 
     @Override
@@ -240,15 +253,11 @@ public class Bematech extends Impressora {
     @Override
     protected String[] linhaRelatorio(String texto) {
         String[] linhas = texto.split("\\" + SL);
-        StringBuilder sb = new StringBuilder();
         for (String linha : linhas) {
-            if (linha.contains("<N>")) {
-                linha = linha.replace("<N>", new String(new byte[]{27}) + new String(new byte[]{69})).replace("</N>", new String(new byte[]{27}) + new String(new byte[]{70}));
-            }
-            sb.append(linha).append(ENTER);
+            linha = linha.replaceAll("<N>", new String(new byte[]{27}) + new String(new byte[]{69})).replaceAll("</N>", new String(new byte[]{27}) + new String(new byte[]{70}));
+            bemajava.Bematech.UsaRelatorioGerencialMFD(linha + ENTER);
         }
-        int iRetorno = bemajava.Bematech.UsaRelatorioGerencialMFD(sb.toString());
-        return getRetorno(iRetorno);
+        return getRetorno(1);
     }
 
     @Override
@@ -259,9 +268,11 @@ public class Bematech extends Impressora {
 
     @Override
     protected String[] linhaCupomVinculado(String texto) {
-        texto = texto.replaceAll("\\" + SL, ENTER);
-        int iRetorno = bemajava.Bematech.UsaComprovanteNaoFiscalVinculado(texto);
-        return getRetorno(iRetorno);
+        String[] linhas = texto.split("\\" + SL);
+        for (String linha : linhas) {
+            bemajava.Bematech.UsaComprovanteNaoFiscalVinculado(linha + ENTER);
+        }
+        return getRetorno(1);
     }
 
     @Override
@@ -273,12 +284,10 @@ public class Bematech extends Impressora {
 
     @Override
     protected String[] pularLinhas(Integer linhas) {
-        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < linhas; i++) {
-            sb.append(ENTER);
+            bemajava.Bematech.UsaRelatorioGerencialMFD(ENTER);
         }
-        int iRetorno = bemajava.Bematech.UsaRelatorioGerencialMFD(sb.toString());
-        return getRetorno(iRetorno);
+        return getRetorno(1);
     }
 
     @Override
@@ -320,7 +329,7 @@ public class Bematech extends Impressora {
 
     @Override
     protected String[] efetuarPagamento(String[] params) {
-        int iRetorno = bemajava.Bematech.EfetuaFormaPagamentoIndiceMFD(params[0], params[1].replace(".", ","), "0", "");
+        int iRetorno = bemajava.Bematech.EfetuaFormaPagamentoIndice(params[0], params[1].replace(".", ","));
         return getRetorno(iRetorno);
     }
 
@@ -374,15 +383,62 @@ public class Bematech extends Impressora {
     }
 
     @Override
-    protected String[] getDadosZ() {
-        //TODO fazer o parser dos dados para ficar que nem o ini do acbr
-        BemaString z = new BemaString();
-        int iRetorno = bemajava.Bematech.DadosUltimaReducaoMFD(z);
-        String[] resp = z.getBuffer().split(",");
-        for (String r : resp) {
-            LOG.debug(r);
+    public Map<String, Object> getDadosZ() {
+        BemaString sRetorno = new BemaString();
+        int iRetorno = bemajava.Bematech.DadosUltimaReducaoMFD(sRetorno);
+        if (iRetorno == 1) {
+            try {
+                Map<String, Object> mapa = new HashMap<>();
+                // pega os dados
+                String[] dados = sRetorno.getBuffer().split(",");
+                // ECF
+                mapa.put("NumCRZ", Integer.valueOf(dados[2]));
+                mapa.put("NumCOO", Integer.valueOf(dados[3]));
+                mapa.put("NumCRO", Integer.valueOf(dados[1]));
+                mapa.put("DataMovimento", new SimpleDateFormat("ddMMyy").parse(dados[36]));
+                // Totalizadores
+                bemajava.Bematech.VendaBruta(sRetorno);
+                mapa.put("VendaBruta", Double.valueOf(sRetorno.getBuffer()) / 100.00);
+                mapa.put("GrandeTotal", Double.valueOf(dados[15]) / 100.00);
+                Map<String, Double> totalizadores = new HashMap<>();
+                // Aliquotas
+                for (int i = 0; i < 16; i++) {
+                    String aliq = "T" + dados[35].substring(i * 4, i * 4 + 4);
+                    if (!aliq.equals("T0000")) {
+                        String trib = dados[16].substring(i * 14, i * 14 + 14);
+                        if (!trib.equals("00000000000000")) {
+                            totalizadores.put(aliq, Double.valueOf(trib) / 100.00);
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                // Outros ICMS
+                String[] outros = new String[]{"I1", "N1", "F1", "IS1", "NS1", "FS1", "DT", "DS", "AT", "AS", "Can-T", "Can-S"};
+                for (int i = 17; i <= 28; i++) {
+                    if (!dados[i].equals("00000000000000")) {
+                        totalizadores.put(outros[i - 17], Double.valueOf(dados[i]) / 100.00);
+                    }
+                }
+                // Operacao Nao Fiscal
+                double valor = 0.00;
+                if (!dados[30].equals("00000000000000")) {
+                    valor += Double.valueOf(dados[30]) / 100.00;
+                }
+                if (!dados[31].equals("00000000000000")) {
+                    valor += Double.valueOf(dados[31]) / 100.00;
+                }
+                if (valor > 0.00) {
+                    totalizadores.put("OPNF", valor);
+                }
+                mapa.put("Totalizadores", totalizadores);
+                return mapa;
+            } catch (ParseException | NumberFormatException ex) {
+                return null;
+            }
+        } else {
+            return null;
         }
-        return getRetorno(iRetorno, z);
     }
 
     @Override

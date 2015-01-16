@@ -3,12 +3,12 @@ package br.com.phdss.fiscal;
 import br.com.daruma.jna.ECF;
 import br.com.daruma.jna.UTIL;
 import br.com.phdss.EEstado;
-import static br.com.phdss.IECF.ENTER;
-import static br.com.phdss.IECF.ERRO;
-import static br.com.phdss.IECF.LOG;
-import static br.com.phdss.IECF.SL;
 import br.com.phdss.Util;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Classe que representa o ECF da Daruma no sistema e todas suas
@@ -64,7 +64,7 @@ public class Daruma extends Impressora {
     public void ativar() throws Exception {
         char[] sRetorno = new char[300];
         ECF.rLerMeiosPagto(sRetorno);
-        meios = new String(sRetorno).split(",");
+        meios = new String(sRetorno).trim().split(";");
     }
 
     @Override
@@ -82,8 +82,52 @@ public class Daruma extends Impressora {
 
     @Override
     public EEstado validarEstado() throws Exception {
-        //TODO pegar os status da daruma, ver quais comando
-        return EEstado.estLivre;
+        EEstado estado;
+        int[] iRetorno = new int[1];
+        char[] sRetorno = new char[2];
+
+        // valida o status online
+        ECF.rConsultaStatusImpressoraInt(11, iRetorno);
+        if (iRetorno[0] == 1) {
+            estado = EEstado.estNaoInicializada;
+        } else {
+            // valida se requer Z
+            ECF.rConsultaStatusImpressoraInt(5, iRetorno);
+            if (iRetorno[0] == 1) {
+                estado = EEstado.estBloqueada;
+            } else {
+                // valida se exite Z pendente
+                ECF.rConsultaStatusImpressoraInt(6, iRetorno);
+                if (iRetorno[0] == 1) {
+                    estado = EEstado.estRequerZ;
+                } else {
+                    // valida se tem documento aberto
+                    ECF.rConsultaStatusImpressoraInt(12, iRetorno);
+                    if (iRetorno[0] == 1) {
+                        // valida o status de venda
+                        ECF.rCFVerificarStatusInt(iRetorno);
+                        if (iRetorno[0] == 3) {
+                            estado = EEstado.estPagamento;
+                        } else if (iRetorno[0] != 0) {
+                            estado = EEstado.estVenda;
+                        } else {
+                            // valida o status de relatorio
+                            ECF.rRGVerificarStatus(sRetorno);
+                            String rResp = new String(sRetorno).trim();
+                            if (rResp.equals("1")) {
+                                estado = EEstado.estRelatorio;
+                            } else {
+                                estado = EEstado.estDesconhecido;
+                            }
+                        }
+                    } else {
+                        estado = EEstado.estLivre;
+                    }
+                }
+            }
+        }
+
+        return estado;
     }
 
     @Override
@@ -100,85 +144,101 @@ public class Daruma extends Impressora {
 
     @Override
     protected String[] getDataHora() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("66", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        String[] resp = getInfo("66");
+        try {
+            Date data = new SimpleDateFormat("ddMMyyyyHHmmss").parse(resp[1]);
+            resp[1] = new SimpleDateFormat("dd/MM/yy HH:mm:ss").format(data);
+        } catch (ParseException ex) {
+        }
+        return resp;
     }
 
     @Override
     protected String[] getDataHoraSB() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("76", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        String[] resp = getInfo("76");
+        try {
+            Date data = new SimpleDateFormat("ddMMyyyyHHmmss").parse(resp[1]);
+            resp[1] = new SimpleDateFormat("dd/MM/yy HH:mm:ss").format(data);
+        } catch (ParseException ex) {
+        }
+        return resp;
     }
 
     @Override
     protected String[] getVersao() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("83", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        return getInfo("83");
     }
 
     @Override
     protected String[] getNumECF() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("107", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        return getInfo("107");
     }
 
     @Override
     protected String[] getNumCCF() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("30", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        return getInfo("30");
     }
 
     @Override
     protected String[] getNumCupom() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("26", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        return getInfo("26");
     }
 
     @Override
     protected String[] getNumItem() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("58", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        return getInfo("58");
     }
 
     @Override
     protected String[] getNumSerie() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("78", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        return getInfo("78");
     }
 
     @Override
     protected String[] getNumGT() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("1", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        String[] resp = getInfo("1");
+        resp[1] = Util.formataNumero(Double.valueOf(resp[1]) / 100.00, 1, 2, false);
+        return resp;
+    }
+
+    @Override
+    protected String[] getNumBruto() {
+        String[] resp = getInfo("1");
+        double gtFim = Double.valueOf(resp[1]) / 100.00;
+        resp = getInfo("2");
+        double gtIni = Double.valueOf(resp[1]) / 100.00;
+        resp[1] = Util.formataNumero(gtFim - gtIni, 1, 2, false);
+        return resp;
     }
 
     @Override
     protected String[] getNumGNF() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("28", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        return getInfo("28");
     }
 
     @Override
-    protected String[] getGRG() {
-        char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("33", sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+    protected String[] getNumGRG() {
+        return getInfo("33");
     }
 
     @Override
-    protected String[] getCDC() {
+    protected String[] getNumCDC() {
+        return getInfo("45");
+    }
+
+    @Override
+    protected String[] getNumCRO() {
+        return getInfo("23");
+    }
+
+    @Override
+    protected String[] getNumCRZ() {
+        return getInfo("24");
+    }
+
+    private String[] getInfo(String indice) {
         char[] sRetorno = new char[30];
-        int iRetorno = ECF.rRetornarInformacao("45", sRetorno);
+        int iRetorno = ECF.rRetornarInformacao(indice, sRetorno);
         return getRetorno(iRetorno, new String(sRetorno));
     }
 
@@ -191,15 +251,10 @@ public class Daruma extends Impressora {
     @Override
     protected String[] linhaRelatorio(String texto) {
         String[] linhas = texto.split("\\" + SL);
-        StringBuilder sb = new StringBuilder();
         for (String linha : linhas) {
-            if (linha.contains("<N>")) {
-                linha = linha.replace("<N>", "<b>").replace("</N>", "</b>");
-            }
-            sb.append(linha).append(ENTER);
+            ECF.iRGImprimirTexto(linha.replaceAll("N>", "b>"));
         }
-        int iRetorno = ECF.iRGImprimirTexto(texto);
-        return getRetorno(iRetorno);
+        return getRetorno(1);
     }
 
     @Override
@@ -224,12 +279,10 @@ public class Daruma extends Impressora {
 
     @Override
     protected String[] pularLinhas(Integer linhas) {
-        StringBuilder sb = new StringBuilder();
         for (int i = 0; i < linhas; i++) {
-            sb.append(ENTER);
+            ECF.iRGImprimirTexto(ENTER);
         }
-        int iRetorno = ECF.iRGImprimirTexto(sb.toString());
-        return getRetorno(iRetorno);
+        return getRetorno(1);
     }
 
     @Override
@@ -255,7 +308,7 @@ public class Daruma extends Impressora {
         } else if (aliq.endsWith("S")) {
             aliq = "S" + aliq.replace("S", "");
         }
-        int iRetorno = ECF.iCFVender(aliq, params[3], params[4].replace(".", ","), "D$", "0", params[0], params[6], params[1]);
+        int iRetorno = ECF.iCFVender(aliq, Util.formataNumero(params[3], 1, 0, false), params[4].replace(".", ","), "D$", "0", params[0], params[6], params[1]);
         return getRetorno(iRetorno);
     }
 
@@ -317,11 +370,71 @@ public class Daruma extends Impressora {
     }
 
     @Override
-    protected String[] getDadosZ() {
-        //TODO fazer o parser dos dados para ficar que nem o ini do acbr
-        char[] sRetorno = new char[3000];
+    public Map<String, Object> getDadosZ() {
+        char[] sRetorno = new char[1209];
         int iRetorno = ECF.rRetornarDadosReducaoZ(sRetorno);
-        return getRetorno(iRetorno, new String(sRetorno));
+        if (iRetorno == 1) {
+            try {
+                Map<String, Object> mapa = new HashMap<>();
+                // pega os dados
+                String[] dados = new String(sRetorno).split(";");
+                // ECF
+                mapa.put("NumCRZ", Integer.valueOf(dados[28]));
+                mapa.put("NumCOO", Integer.valueOf(dados[30]));
+                mapa.put("NumCRO", Integer.valueOf(dados[27]));
+                mapa.put("DataMovimento", new SimpleDateFormat("ddMMyyyy").parse(dados[0]));
+                // Totalizadores
+                double gtIni = Double.valueOf(dados[2]) / 100.00;
+                double gtFim = Double.valueOf(dados[1]) / 100.00;
+                mapa.put("VendaBruta", gtFim - gtIni);
+                mapa.put("GrandeTotal", gtFim);
+                Map<String, Double> totalizadores = new HashMap<>();
+                // Aliquotas
+                for (int i = 0; i < 16; i++) {
+                    String aliq = dados[26].substring(i * 5, i * 5 + 5);
+                    if (!aliq.equals("00000")) {
+                        aliq = Util.formataNumero(i + 1, 2, 0, false) + (aliq.startsWith("1") ? "T" : "S") + aliq.substring(1);
+                        String trib = dados[9].substring(i * 14, i * 14 + 14);
+                        if (!trib.equals("00000000000000")) {
+                            totalizadores.put(aliq, Double.valueOf(trib) / 100.00);
+                        }
+                    } else {
+                        break;
+                    }
+                }
+                // Outros ICMS
+                String[] outros = new String[]{"F1", "F2", "I1", "I2", "N1", "N2", "FS1", "FS2", "IS1", "IS2", "NS1", "NS2"};
+                for (int i = 10; i <= 21; i++) {
+                    if (!dados[i].equals("00000000000000")) {
+                        totalizadores.put(outros[i - 10], Double.valueOf(dados[i]) / 100.00);
+                    }
+                }
+                // Extras
+                String[] extras = new String[]{"DT", "DS", "Can-T", "Can-S", "AT", "AS"};
+                for (int i = 3; i <= 8; i++) {
+                    if (!dados[i].equals("00000000000000")) {
+                        totalizadores.put(extras[i - 3], Double.valueOf(dados[i]) / 100.00);
+                    }
+                }
+                // Operacao Nao Fiscal
+                double valor = 0.00;
+                for (int i = 0; i < 20; i++) {
+                    String nf = dados[22].substring(i * 14, i * 14 + 14);
+                    if (!nf.equals("00000000000000")) {
+                        valor += Double.valueOf(nf) / 100.00;
+                    }
+                }
+                if (valor > 0.00) {
+                    totalizadores.put("OPNF", valor);
+                }
+                mapa.put("Totalizadores", totalizadores);
+                return mapa;
+            } catch (ParseException | NumberFormatException ex) {
+                return null;
+            }
+        } else {
+            return null;
+        }
     }
 
     @Override
@@ -343,5 +456,4 @@ public class Daruma extends Impressora {
         int iRetorno = ECF.rEfetuarDownloadMFD("DATAM", "01012000", Util.formataData(new Date(), "ddMMyyyy"), path);
         return getRetorno(iRetorno);
     }
-
 }
