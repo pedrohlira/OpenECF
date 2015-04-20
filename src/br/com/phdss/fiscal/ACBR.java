@@ -105,14 +105,33 @@ public class ACBR implements IECF {
                 String[] ret = dados.split(":", 2);
                 resp[0] = ret[0].trim();
                 resp[1] = ret[1].trim();
+                if(ERRO.equals(resp[0]) && (resp[1].contains("reset") || resp[1].contains("timeout"))){
+                    resp[1] += this.reativar();
+                }
             } else {
                 resp[0] = OK;
                 resp[1] = dados.trim();
             }
         } catch (Exception ex) {
-            LOG.error("Nao foi possivel enviar ou receber comando ao ECF" + acao.toString(), ex);
             resp[0] = ERRO;
-            resp[1] = "Nao foi possivel enviar ou receber comando ao ECF";
+            resp[1] = "Nao foi possivel enviar ou receber comando ao ECF.";
+            if (!comando.equals(EComando.ECF_Ativar.toString()) && !comando.equals(EComando.ECF_Desativar.toString())) {
+                resp[1] += this.reativar();
+            }
+            LOG.error(resp[1] + acao.toString(), ex);
+        }
+        return resp;
+    }
+
+    private String reativar() {
+        String resp;
+        try {
+            this.desativar();
+            this.ativar();
+            this.conectar("3434", 10000, 0);
+            resp = "\nO sistema refez a conexão com o ACBR, tente novamente.";
+        } catch (Exception e) {
+            resp = "\nO sistema não consegue se conecar ao ACBR, avise o administrador.";
         }
         return resp;
     }
